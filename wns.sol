@@ -16,11 +16,12 @@ contract WNS is ERC721, Ownable, ReentrancyGuard {
     mapping(string => bool) public nameExists;
     uint256 public ethFee;
     uint256 public tokenFee;
+    string public referral;
     IERC20 public feeToken;
 
     // Events
     event FeeUpdated(uint256 ethFee, uint256 tokenFee, address feeToken);
-    event NFTMinted(uint256 tokenId, string name, address mintedBy);
+    event NFTMinted(uint256 tokenId, string name, address mintedBy, string referredBy);
 
     constructor(address __owner) ERC721("NameNFT", "NNFT") Ownable(__owner) {}
 
@@ -31,29 +32,30 @@ contract WNS is ERC721, Ownable, ReentrancyGuard {
         emit FeeUpdated(_ethFee, _tokenFee, _feeToken);
     }
 
-    function mintNFTWithETH(string memory name) external payable nonReentrant {
+    function mintNFTWithETH(string memory name, string memory _referral) external payable nonReentrant {
         require(!nameExists[name], "Name already exists");
-        require(msg.value >= ethFee, "Insufficient WYZ sent");
+        require(msg.value >= ethFee, "Insufficient  sent");
+        referral = _referral;
 
-        _mintNFT(name);
+        _mintNFT(name,_referral);
     }
 
-    function mintNFTWithToken(string memory name, uint256 amount) external nonReentrant {
+    function mintNFTWithToken(string memory name, uint256 amount,string memory _referral) external nonReentrant {
         require(!nameExists[name], "Name already exists");
         require(amount >= tokenFee, "Insufficient token amount");
         
         feeToken.safeTransferFrom(msg.sender, address(this), amount);
-        _mintNFT(name);
+        _mintNFT(name,_referral);
     }
 
-    function _mintNFT(string memory name) private {
+    function _mintNFT(string memory name,string memory _referral) private {
         _tokenIds.increment();
         uint256 newItemId = _tokenIds.current();
         
         _mint(msg.sender, newItemId);
         nameExists[name] = true;
 
-        emit NFTMinted(newItemId, name, msg.sender);
+        emit NFTMinted(newItemId, name, msg.sender, _referral);
     }
 
     function withdraw() external onlyOwner {
