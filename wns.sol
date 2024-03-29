@@ -18,6 +18,7 @@ contract WNS is ERC721, Ownable, ReentrancyGuard {
     uint256 public tokenFee;
     string public referral;
     IERC20 public feeToken;
+    mapping(address => string ) public userRefral;
 
     // Events
     event FeeUpdated(uint256 ethFee, uint256 tokenFee, address feeToken);
@@ -30,6 +31,10 @@ contract WNS is ERC721, Ownable, ReentrancyGuard {
         tokenFee = _tokenFee;
         feeToken = IERC20(_feeToken);
         emit FeeUpdated(_ethFee, _tokenFee, _feeToken);
+    }
+
+    function setUserReferal( string memory ref )public {
+        userRefral[msg.sender] = ref;
     }
 
     function mintNFTWithETH(string memory name, string memory _referral) external payable nonReentrant {
